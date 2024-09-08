@@ -1,15 +1,56 @@
-version: '3'
+version: '3.8'
+
 volumes:
-  data:
+  app-vol:
+  node-modules-vol:
+  mssql-vol:
+
+networks:
+  iheros-network:
+    name: iheros-network
+
 services:
-  db:
-    image: mariadb
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: iHero
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+  base: &base
+    hostname: base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    working_dir: /home/node/app
     volumes:
-      - data:/var/lib/mysql
+      - ./:/home/node/app
+      - node-modules-vol:/home/node/app/node_modules
+    networks:
+      - iheros-network
+
+  app:
+    <<: *base
+    hostname: app
+    env_file:
+      - .env
     ports:
-      - "3306:3306"
+      - '3003:3003'
+    depends_on:
+      mssql:
+        condition: service_healthy
+    networks:
+      - iheros-network
+    command: sh -c "yarn install && yarn prisma generate && yarn prisma migrate deploy && yarn start:dev"
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 1433:1433
+    volumes:
+      - mssql-vol:/var/opt/mssql
+    networks:
+      - iheros-network
+    environment:
+      SA_PASSWORD: 'Password@123'
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: 'Developer'
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Password@123" -Q "SELECT 1" || exit 1
+      interval: 3s
+      timeout: 3s
+      retries: 5

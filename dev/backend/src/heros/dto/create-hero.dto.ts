@@ -1,4 +1,3 @@
-import { Class } from '@prisma/client';
 import {
   IsEnum,
   IsNumber,
@@ -6,17 +5,22 @@ import {
   ValidationArguments,
 } from 'class-validator';
 
+export enum Class {
+  WARRIOR = 'Warrior',
+  MAGE = 'Mage',
+  ROGUE = 'Rogue',
+  PALADIN = 'Paladin',
+  SHAMAN = 'Shaman',
+  DRUID = 'Druid',
+  HUNTER = 'Hunter',
+  WARLOCK = 'Warlock',
+}
 export class CreateHeroDto {
   @IsString()
   name: string;
 
-  @IsEnum(Class, {
-    message: (args: ValidationArguments) => {
-      const allowedValues = Object.values(Class).join(', ');
-      return `Invalid class value provided. Allowed values: ${allowedValues}`;
-    },
-  })
-  class: Class;
+  @IsString()
+  class: string;
 
   @IsNumber()
   lati: number;

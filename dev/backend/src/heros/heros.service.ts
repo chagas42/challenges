@@ -3,7 +3,6 @@ import { CreateHeroDto } from './dto/create-hero.dto';
 import { UpdateHeroDto } from './dto/update-hero.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Hero } from './entities/hero.entity';
-import { Prisma, ThreatRank } from '@prisma/client';
 import { HistoryService } from '../history/history.service';
 import { CreateHistoryDto } from '../history/dto/create-history.dto';
 import { ThreatOccurrence } from '../threats/dto/threat.dto';
@@ -79,7 +78,7 @@ export class HerosService {
       lng: number;
     },
     threatName: string,
-    threatRank: ThreatRank,
+    threatRank: string,
   ): Promise<Hero> {
     const battleDuration = this.generateRandomDuration(
       minDuration,
@@ -110,7 +109,7 @@ export class HerosService {
   }
 
   async create(createHeroDto: CreateHeroDto): Promise<Hero> {
-    const data: Prisma.HeroCreateInput = {
+    const data = {
       ...createHeroDto,
       battle_end_timestamp: new Date(),
       active: true,
@@ -168,7 +167,7 @@ export class HerosService {
           threat.max,
           location,
           ocurrence.monsterName,
-          ocurrence.dangerLevel as ThreatRank,
+          ocurrence.dangerLevel,
         );
         break;
       }
